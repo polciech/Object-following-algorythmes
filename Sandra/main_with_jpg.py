@@ -16,30 +16,36 @@ class ObjectTracker:
         self.r = None
         self.path = []
 
-        self.term_criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1)
+        self.term_criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10,1)
         self.tracking_algorithm = tk.StringVar(value="MeanShift")
 
         self.create_gui()
 
     def create_gui(self):
-        select_button = tk.Button(self.root, text="Select Object", command=self.select_object)
-        select_button.pack(pady=10)
-
         tracking_label = tk.Label(self.root, text="Select Tracking Algorithm:")
         tracking_label.pack()
 
         tracking_combobox = ttk.Combobox(self.root, textvariable=self.tracking_algorithm,
-                                         values=["MeanShift", "CamShift"])
+                                         values=["MeanShift", "CamShift"], state="readonly")
         tracking_combobox.pack()
 
-        select_video_button = tk.Button(self.root, text="Select Video", command=self.select_video)
+        select_video_button = tk.Button(self.root, text="Select Video", command=self.select_and_track_video)
         select_video_button.pack(pady=10)
-
-        track_button = tk.Button(self.root, text="Track Object", command=self.track_object)
-        track_button.pack(pady=10)
 
         exit_button = tk.Button(self.root, text="Exit", command=self.exit_program)
         exit_button.pack(pady=10)
+
+    def select_and_track_video(self):
+        file_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video Files", "*.mp4;*.avi")])
+        if file_path:
+            self.video_path = file_path
+            self.cap = cv.VideoCapture(self.video_path)
+            messagebox.showinfo("Info", f"Selected video: {self.video_path}")
+
+            # Otwórz okno do wyboru obiektu
+            self.select_object()
+            # Rozpocznij śledzenie po wybraniu obiektu
+            self.track_object()
 
     def select_object(self):
         if self.video_path is None:
@@ -63,13 +69,6 @@ class ObjectTracker:
         self.path = [(x + w // 2, y + h // 2)]
 
         messagebox.showinfo("Info", "Object selected successfully.")
-
-    def select_video(self):
-        file_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video Files", "*.mp4;*.avi")])
-        if file_path:
-            self.video_path = file_path
-            self.cap = cv.VideoCapture(self.video_path)
-            messagebox.showinfo("Info", f"Selected video: {self.video_path}")
 
     def track_object(self):
         if self.roi_hist is None:
@@ -160,3 +159,5 @@ class ObjectTracker:
 if __name__ == "__main__":
     tracker = ObjectTracker()
     tk.mainloop()
+
+
